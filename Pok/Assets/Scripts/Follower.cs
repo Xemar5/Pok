@@ -5,9 +5,9 @@ using UnityEngine;
 public class Follower : MonoBehaviour
 {
     [SerializeField]
-    private Transform followedTransform = null;
+    protected Transform followedTransform = null;
     [SerializeField]
-    private float ratio = 0.01f;
+    protected float ratio = 0.01f;
 
     public float offset = 0;
 

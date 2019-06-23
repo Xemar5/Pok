@@ -18,9 +18,9 @@ public class RankingManager : MonoBehaviour
 
     [Header("Info Components")]
     [SerializeField]
-    private TMP_Text waitingForScoresText = null;
+    private CanvasGroup waitingForScoresText = null;
     [SerializeField]
-    private TMP_Text timeoutText = null;
+    private CanvasGroup timeoutText = null;
 
     [Header("Entries")]
     [SerializeField]
@@ -60,6 +60,10 @@ public class RankingManager : MonoBehaviour
                 if (data == null)
                 {
                     await Task.Delay(3000); // wait for 3s and retry
+                    if (Application.isPlaying == false)
+                    {
+                        return;
+                    }
                 }
                 else
                 {

@@ -14,7 +14,7 @@ public class FirebaseManager : MonoBehaviour
     {
         get
         {
-            if (instance == null)
+            if (instance == null && Application.isPlaying == true)
             {
                 instance = new GameObject("FirebaseManager").AddComponent<FirebaseManager>();
                 DontDestroyOnLoad(instance.gameObject);
@@ -31,6 +31,7 @@ public class FirebaseManager : MonoBehaviour
 
     public bool IsInitialized => app != null;
     public string UserGuid { get; set; }
+
 
     public async void Initialize()
     {
