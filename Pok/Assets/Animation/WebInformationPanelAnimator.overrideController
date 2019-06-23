@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: WebInformationPanelAnimator
+  m_Controller: {fileID: 9100000, guid: 832b98263a91301479f713a4b5ee5ebc, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: a061e322935deba4b9a333a6df11ad05, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 49ace5cb87bc44c449a2f2281b854e3d, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: d459ccb9dfeb19b4c9bb971bd3c6f1a7, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 52c4f5cfc399114458bee92d0197a850, type: 2}

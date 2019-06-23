@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "266615542588",
+    "firebase_url": "https://pok-game.firebaseio.com",
+    "project_id": "pok-game",
+    "storage_bucket": "pok-game.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266615542588:android:41880810ef84bf64",
+        "android_client_info": {
+          "package_name": "com.horun.pok"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "266615542588-kqkhtcj8t68dvndirkbpih4ehete40kk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4E0XjijhD7KRffshDBSwVR4hvm2ulmDQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "266615542588-kqkhtcj8t68dvndirkbpih4ehete40kk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
