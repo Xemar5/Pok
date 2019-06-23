@@ -8,36 +8,33 @@ using UnityEngine;
 public class LavaFollower : Follower
 {
     [SerializeField]
-    private PlayerController playerController = null;
+    private MenuManager menuManager = null;
+    [SerializeField]
+    private TimeScaller timeScaller = null;
     [SerializeField]
     private float minDeltaFollow;
     [SerializeField]
     private float increment = 0.1f;
     private float deltafollow;
     private float lastDeltaFollow;
+    private float maxDeltaFollow;
 
-    public bool IsStarted { get; set; }
 
     private void Awake()
     {
         deltafollow = base.offset;
-        playerController.OnJump += StartLava;
-    }
-
-    private void StartLava(PlayerController obj)
-    { 
-        IsStarted = true;
+        maxDeltaFollow = Camera.main.ViewportToWorldPoint(Vector3.up).y * 1.5f;
     }
 
     private void Update()
     {
-        if (IsStarted == false)
+        if (menuManager.GameStarted == false)
         {
             return;
         }
         lastDeltaFollow = deltafollow;
-        deltafollow = transform.position.y - followedTransform.transform.position.y - lastDeltaFollow + base.offset + increment;
-        deltafollow = Mathf.Max(minDeltaFollow, deltafollow);
+        deltafollow = transform.position.y - followedTransform.transform.position.y - lastDeltaFollow + base.offset + increment * timeScaller.TimeScale;
+        deltafollow = Mathf.Clamp(deltafollow, minDeltaFollow, maxDeltaFollow);
         base.offset = deltafollow;
     }
 }

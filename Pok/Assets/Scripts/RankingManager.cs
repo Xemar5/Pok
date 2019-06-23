@@ -78,13 +78,22 @@ public class RankingManager : MonoBehaviour
 
     public async void SendScoreAndGetRanking(ScoreQuery localEntryData)
     {
-        localEntryData.guid = FirebaseManager.Instance.UserGuid;
         this.response = await FirebaseManager.Instance.SendScoreAndGetRanking(localEntryData);
         if (this.response == null)
         {
             Debug.LogWarning("Couldn't send the score or get leaderboards");
         }
     }
+    public async void GetRanking(ScoreQuery localEntryData)
+    {
+        string json = JsonUtility.ToJson(localEntryData);
+        this.response = await FirebaseManager.Instance.GetRanking(json);
+        if (this.response == null)
+        {
+            Debug.LogWarning("Couldn't get leaderboards");
+        }
+    }
+
 
     public IEnumerator Show(float fadeDuration)
     {

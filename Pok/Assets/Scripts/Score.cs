@@ -57,7 +57,7 @@ public class Score : MonoBehaviour
         {
             HighestScore = score;
             HighestScoreTime = time;
-            CurrentScore = (int)score;
+            CurrentScore = (int)score - (int)time;
             scoreText.text = CurrentScore.ToString();
 
         }

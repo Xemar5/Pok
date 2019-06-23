@@ -21,11 +21,13 @@ public class MenuManager : MonoBehaviour
     private EventSystem eventSystem = null;
     [SerializeField]
     private RankingManager rankingManager = null;
+    [SerializeField]
+    private Button leaderboardsButton = null;
 
     [Header("Background")]
     [SerializeField]
     private Image blackScreen = null;
-    
+
     [Header("Start Menu")]
     [SerializeField]
     private CanvasGroup startMenuCanvasGroup = null;
@@ -56,6 +58,7 @@ public class MenuManager : MonoBehaviour
 
     private Coroutine informCoroutine = null;
 
+    public bool GameStarted { get; private set; }
 
     private IEnumerator Start()
     {
@@ -66,6 +69,7 @@ public class MenuManager : MonoBehaviour
         player.OnJump += FirstJump;
         nameInput.onEndEdit.AddListener(OnNameEditEnd);
         nameInput.onSelect.AddListener(x => StopInform());
+        leaderboardsButton.onClick.AddListener(ShowLeaderboardsFromMainMenu);
 
         mobileInformPanel.DOFade(0, 0);
         webInformPanel.DOFade(0, 0);
@@ -179,6 +183,7 @@ public class MenuManager : MonoBehaviour
 
     private void StartGame()
     {
+        GameStarted = true;
         startMenuCanvasGroup.DOFade(0, fadeDuration);
     }
     private void RestartGame()
@@ -194,11 +199,12 @@ public class MenuManager : MonoBehaviour
         query.username = nameInput.text;
         query.score = score.CurrentScore;
         query.invscore = -score.CurrentScore;
+        query.guid = FirebaseManager.Instance.UserGuid;
         rankingManager.SendScoreAndGetRanking(query);
 
 
         resultsCanvasGroup.DOFade(1, fadeDuration);
-        durationText.text = score.HighestScoreTime.ToString("F1");
+        durationText.text = "-" + score.HighestScoreTime.ToString("F1");
         heightText.text = score.HighestScore.ToString("F1");
 
         yield return new WaitForSeconds(fadeDuration);
@@ -210,6 +216,20 @@ public class MenuManager : MonoBehaviour
         yield return new WaitForSeconds(fadeDuration * 6);
 
         resultsCanvasGroup.DOFade(0, fadeDuration);
+        ShowRankings();
+    }
+
+    private void ShowLeaderboardsFromMainMenu()
+    {
+        ScoreQuery query = new ScoreQuery();
+        query.username = PlayerPrefs.GetString("PlayerName", "");
+        query.score = PlayerPrefs.GetInt("PlayerScore", 0);
+        query.invscore = -query.score;
+        query.guid = string.IsNullOrWhiteSpace(query.username) == true ? "" : FirebaseManager.Instance.UserGuid;
+        rankingManager.GetRanking(query);
+        startMenuCanvasGroup.DOFade(0, fadeDuration);
+        player.CanMove = false;
+        StopInform();
         ShowRankings();
     }
 

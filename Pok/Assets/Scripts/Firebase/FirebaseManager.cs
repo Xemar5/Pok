@@ -83,16 +83,29 @@ public class FirebaseManager : MonoBehaviour
     public async Task<ScoreResponse> SendScoreAndGetRanking(ScoreQuery localEntryData)
     {
         string json = JsonUtility.ToJson(localEntryData);
+        if (await SendScore(json) == false)
+        {
+            return null;
+        }
+        return await GetRanking(json);
+    }
+
+    private async Task<bool> SendScore(string json)
+    {
         try
         {
             await functions.GetHttpsCallable("setScore").CallAsync(json);
+            return true;
         }
         catch (Exception e)
         {
             Debug.LogError("Couldn't send user score: " + e);
-            return null;
+            return false;
         }
+    }
 
+    public async Task<ScoreResponse> GetRanking(string json)
+    {
         try
         {
             HttpsCallableResult response = await functions.GetHttpsCallable("getRanking").CallAsync(json);

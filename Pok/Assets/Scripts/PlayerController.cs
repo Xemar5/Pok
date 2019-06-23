@@ -14,6 +14,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private new Rigidbody2D rigidbody2D = null;
     [SerializeField]
+    private TimeScaller timeScaller = null;
+    [SerializeField]
     private float upwardVelocity = 10;
     [SerializeField]
     private float sidewardVelocity = 10;
@@ -38,14 +40,14 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        rightTouch.OnTouchDown += OnTouchHandle;
-        leftTouch.OnTouchDown += OnTouchHandle;
+        rightTouch.OnTouchUp += OnTouchHandle;
+        leftTouch.OnTouchUp += OnTouchHandle;
         jumpsLeft = resetJumps;
     }
     private void Update()
     {
         float time = Time.time;
-        if (bufferedTouch != null && lastJumpTime + minJumpInterval <= time && jumpsLeft > 0)
+        if (bufferedTouch != null && lastJumpTime + minJumpInterval <= time && (jumpsLeft > 0 || jumpsLeft == -1))
         {
             OnTouchHandle(bufferedTouch);
             bufferedTouch = null;
@@ -105,9 +107,12 @@ public class PlayerController : MonoBehaviour
         lastJumpTime = Time.time;
         lastInput = touchHandler;
 
-        Vector2 velocity = new Vector2(touchHandler.Direction * sidewardVelocity, upwardVelocity);
+        Vector2 velocity = new Vector2(touchHandler.Direction * sidewardVelocity * timeScaller.TimeScale, upwardVelocity * timeScaller.TimeScale);
         rigidbody2D.velocity = velocity;
-        jumpsLeft -= 1;
+        if (jumpsLeft > 0)
+        {
+            jumpsLeft -= 1;
+        }
         OnJump?.Invoke(this);
     }
 

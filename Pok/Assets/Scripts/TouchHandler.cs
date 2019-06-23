@@ -53,7 +53,7 @@ public class TouchHandler : MonoBehaviour
             OnDown();
             isClicked = true;
         }
-        else if (isClicked == true)
+        else if (inputValue == false && isClicked == true)
         {
             OnUp();
             isClicked = false;
