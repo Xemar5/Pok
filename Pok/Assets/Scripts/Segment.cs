@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class Segment : MonoBehaviour
@@ -15,6 +16,7 @@ public class Segment : MonoBehaviour
     public float Bottom => bottom;
     public Segment Prefab { get; set; }
 
+#if UNITY_EDITOR
     [ContextMenu("Calculate Height")]
     private void CalculateHeight()
     {
@@ -34,9 +36,11 @@ public class Segment : MonoBehaviour
             bounds.Encapsulate(renderer.bounds);
         }
 
+        Undo.RecordObject(this, "Changing Top and Bottom");
         bottom = bounds.min.y - transform.position.y;
         top = bounds.max.y - transform.position.y;
     }
+#endif
 
     public void SetPosition(float totalHeight)
     {

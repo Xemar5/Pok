@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public class SegmentManager : MonoBehaviour
@@ -35,6 +34,7 @@ public class SegmentManager : MonoBehaviour
             Debug.LogError("No prefabs exist.");
             gameObject.SetActive(false);
         }
+        PlaceStartingSegment();
     }
 
     private void Update()
@@ -46,10 +46,6 @@ public class SegmentManager : MonoBehaviour
         {
             int segmentIndex = UnityEngine.Random.Range(0, segmentPrefabs.Count);
             Segment segment = UseSegment(segmentPrefabs[segmentIndex]);
-            if (totalHeight == 0)
-            {
-                DisplaceFirstSegment(segment);
-            }
             totalHeight += segment.Top - segment.Bottom;
 
             debugExit += 1;
@@ -73,6 +69,13 @@ public class SegmentManager : MonoBehaviour
                 return;
             }
         }
+    }
+
+    private void PlaceStartingSegment()
+    {
+        Segment segment = UseSegment(startingSegmentPrefab);
+        DisplaceFirstSegment(segment);
+        totalHeight += segment.Top - segment.Bottom;
     }
 
     private void DisplaceFirstSegment(Segment segment)

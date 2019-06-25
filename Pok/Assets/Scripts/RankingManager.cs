@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -48,37 +47,21 @@ public class RankingManager : MonoBehaviour
         FirebaseManager.Instance.Initialize();
     }
 
-    private async void OnFirebaseInitialized()
+    private void OnFirebaseInitialized()
     {
         string userGuid = PlayerPrefs.GetString("PlayerGuid", string.Empty);
         if (string.IsNullOrEmpty(userGuid) == true)
         {
             GuidData data = null;
-            while (data == null)
-            {
-                data = await FirebaseManager.Instance.GetId();
-                if (data == null)
-                {
-                    await Task.Delay(3000); // wait for 3s and retry
-                    if (Application.isPlaying == false)
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    PlayerPrefs.SetString("PlayerGuid", data.guid);
-                    userGuid = data.guid;
-                }
-            }
+            data = FirebaseManager.Instance.GetId();
         }
         FirebaseManager.Instance.UserGuid = userGuid;
     }
 
 
-    public async void SendScoreAndGetRanking(ScoreQuery localEntryData)
+    public void SendScoreAndGetRanking(ScoreQuery localEntryData)
     {
-        this.response = await FirebaseManager.Instance.SendScoreAndGetRanking(localEntryData);
+        this.response = FirebaseManager.Instance.SendScoreAndGetRanking(localEntryData);
         if (this.response == null)
         {
             Debug.LogWarning("Couldn't send the score or get leaderboards");
@@ -86,8 +69,7 @@ public class RankingManager : MonoBehaviour
     }
     public async void GetRanking(ScoreQuery localEntryData)
     {
-        string json = JsonUtility.ToJson(localEntryData);
-        this.response = await FirebaseManager.Instance.GetRanking(json);
+        this.response = FirebaseManager.Instance.GetRanking(localEntryData);
         if (this.response == null)
         {
             Debug.LogWarning("Couldn't get leaderboards");

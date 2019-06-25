@@ -4,7 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+#if UNITY_ANDROID
 using System.Threading.Tasks;
+#endif
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,10 +21,6 @@ public class MenuManager : MonoBehaviour
     private float fadeDuration = 0.3f;
     [SerializeField]
     private EventSystem eventSystem = null;
-    [SerializeField]
-    private RankingManager rankingManager = null;
-    [SerializeField]
-    private Button leaderboardsButton = null;
 
     [Header("Background")]
     [SerializeField]
@@ -55,6 +53,18 @@ public class MenuManager : MonoBehaviour
     [Header("Score")]
     [SerializeField]
     private Score score = null;
+    [SerializeField]
+    private Button leaderboardsButton = null;
+    [SerializeField]
+    private RankingManager rankingManager = null;
+
+    [Header("Help")]
+    [SerializeField]
+    private Button helpButton = null;
+    [SerializeField]
+    private CanvasGroup helpCanvasGroup = null;
+
+
 
     private Coroutine informCoroutine = null;
 
@@ -62,6 +72,7 @@ public class MenuManager : MonoBehaviour
 
     private IEnumerator Start()
     {
+
         nameInput.text = PlayerPrefs.GetString("PlayerName", string.Empty);
 
         player.CanMove = false;
@@ -70,14 +81,16 @@ public class MenuManager : MonoBehaviour
         nameInput.onEndEdit.AddListener(OnNameEditEnd);
         nameInput.onSelect.AddListener(x => StopInform());
         leaderboardsButton.onClick.AddListener(ShowLeaderboardsFromMainMenu);
+        helpButton.onClick.AddListener(ShowHelpFromMainMenu);
 
-        mobileInformPanel.DOFade(0, 0);
-        webInformPanel.DOFade(0, 0);
-        startMenuCanvasGroup.DOFade(0, 0);
+        ChangeVisibility(mobileInformPanel, false, 0);
+        ChangeVisibility(webInformPanel, false, 0);
+        ChangeVisibility(startMenuCanvasGroup, false, 0);
 
-        resultsCanvasGroup.DOFade(0, 0);
-        durationCanvasGroup.DOFade(0, 0);
-        heightCanvasGroup.DOFade(0, 0);
+        ChangeVisibility(resultsCanvasGroup, false, 0);
+        ChangeVisibility(durationCanvasGroup, false, 0);
+        ChangeVisibility(heightCanvasGroup, false, 0);
+        ChangeVisibility(helpCanvasGroup, false, 0);
 
         blackScreen.DOFade(1, 0);
 
@@ -103,6 +116,7 @@ public class MenuManager : MonoBehaviour
             PlayerPrefs.DeleteKey("PlayerScore");
             PlayerPrefs.DeleteKey("PlayerName");
             PlayerPrefs.DeleteKey("PlayerGuid");
+            PlayerPrefs.DeleteKey("Scores");
             FirebaseManager.Instance.UserGuid = null;
         }
     }
@@ -112,7 +126,6 @@ public class MenuManager : MonoBehaviour
     {
         if (playerController == player)
         {
-            playerController.CanMove = false;
             bool newHighScore = PlayerPrefs.GetInt("PlayerScore", 0) < score.CurrentScore;
             if (newHighScore == true)
             {
@@ -121,17 +134,23 @@ public class MenuManager : MonoBehaviour
             }
             else
             {
-                Hide();
+                Sequence sequence = DOTween.Sequence()
+                    .SetDelay(1)
+                    .OnComplete(Hide);
             }
         }
     }
 
     private void OnNameEditEnd(string name)
     {
-        if (eventSystem.currentSelectedGameObject == nameInput)
+
+        //if (eventSystem.currentSelectedGameObject == nameInput)
+        try
         {
             eventSystem.SetSelectedGameObject(null);
         }
+        catch (Exception) { }
+
         if (name.Length > 0)
         {
             PlayerPrefs.SetString("PlayerName", name.ToLower());
@@ -153,25 +172,25 @@ public class MenuManager : MonoBehaviour
     {
         player.CanMove = true;
 #if UNITY_WEBGL
-        webInformPanel.DOFade(1, fadeDuration);
+        ChangeVisibility(webInformPanel, true);
 #elif UNITY_ANDROID
-        mobileInformPanel.DOFade(1, fadeDuration);
+        ChangeVisibility(mobileInformPanel, true);
 #endif
     }
     private void StopInform()
     {
         player.CanMove = false;
 #if UNITY_WEBGL
-        webInformPanel.DOFade(0, fadeDuration);
+        ChangeVisibility(webInformPanel, false);
 #elif UNITY_ANDROID
-        mobileInformPanel.DOFade(0, fadeDuration);
+        ChangeVisibility(mobileInformPanel, false);
 #endif
     }
 
 
     private void Show()
     {
-        startMenuCanvasGroup.DOFade(1, fadeDuration);
+        ChangeVisibility(startMenuCanvasGroup, true);
         blackScreen.DOFade(0, fadeDuration * 2);
     }
     public void Hide()
@@ -184,7 +203,7 @@ public class MenuManager : MonoBehaviour
     private void StartGame()
     {
         GameStarted = true;
-        startMenuCanvasGroup.DOFade(0, fadeDuration);
+        ChangeVisibility(startMenuCanvasGroup, false);
     }
     private void RestartGame()
     {
@@ -203,19 +222,19 @@ public class MenuManager : MonoBehaviour
         rankingManager.SendScoreAndGetRanking(query);
 
 
-        resultsCanvasGroup.DOFade(1, fadeDuration);
+        ChangeVisibility(resultsCanvasGroup, true);
         durationText.text = "-" + score.HighestScoreTime.ToString("F1");
         heightText.text = score.HighestScore.ToString("F1");
 
         yield return new WaitForSeconds(fadeDuration);
-        durationCanvasGroup.DOFade(1, fadeDuration);
+        ChangeVisibility(durationCanvasGroup, true);
 
         yield return new WaitForSeconds(fadeDuration * 2);
-        heightCanvasGroup.DOFade(1, fadeDuration);
+        ChangeVisibility(heightCanvasGroup, true);
 
         yield return new WaitForSeconds(fadeDuration * 6);
 
-        resultsCanvasGroup.DOFade(0, fadeDuration);
+        ChangeVisibility(resultsCanvasGroup, false);
         ShowRankings();
     }
 
@@ -227,16 +246,62 @@ public class MenuManager : MonoBehaviour
         query.invscore = -query.score;
         query.guid = string.IsNullOrWhiteSpace(query.username) == true ? "" : FirebaseManager.Instance.UserGuid;
         rankingManager.GetRanking(query);
-        startMenuCanvasGroup.DOFade(0, fadeDuration);
+
+        ChangeVisibility(startMenuCanvasGroup, false);
+
         player.CanMove = false;
         StopInform();
         ShowRankings();
     }
 
+    private void ShowHelpFromMainMenu()
+    {
+        StartCoroutine(ShowHelp());
+    }
+    private IEnumerator ShowHelp()
+    {
+        ChangeVisibility(startMenuCanvasGroup, false);
+        ChangeVisibility(helpCanvasGroup, true);
+        score.Hide(fadeDuration);
+        StartInform();
+        player.CanMove = false;
+
+        bool exitHelp = false;
+        Action<PlayerController> tryJump = x =>
+        {
+            exitHelp = true;
+        };
+        player.OnTryJump += tryJump;
+
+        yield return new WaitWhile(() => exitHelp == false);
+
+        player.OnTryJump -= tryJump;
+        Hide();
+    }
+
+
     private void ShowRankings()
     {
         score.Hide(fadeDuration);
         StartCoroutine(rankingManager.Show(fadeDuration));
+    }
+
+    private void ChangeVisibility(CanvasGroup canvasGroup, bool visible)
+    {
+        ChangeVisibility(canvasGroup, visible, fadeDuration);
+    }
+    private void ChangeVisibility(CanvasGroup canvasGroup, bool visible, float fadeDuration)
+    {
+        if (visible == true)
+        {
+            canvasGroup.DOFade(1, fadeDuration);
+            canvasGroup.blocksRaycasts = true;
+        }
+        else
+        {
+            canvasGroup.DOFade(0, fadeDuration);
+            canvasGroup.blocksRaycasts = false;
+        }
     }
 
 }

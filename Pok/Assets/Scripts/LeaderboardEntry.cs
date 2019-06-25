@@ -18,6 +18,10 @@ public class LeaderboardEntry : MonoBehaviour
     private TMP_Text score = null;
     [SerializeField]
     private Image background = null;
+    [SerializeField]
+    private Color lightColor = new Color();
+    [SerializeField]
+    private Color darkColor = new Color();
 
     public void SetScoreEntryData(ScoreEntryData data, bool isLocal, float fadeDuration)
     {
@@ -28,16 +32,16 @@ public class LeaderboardEntry : MonoBehaviour
         if (isLocal == true)
         {
             background.gameObject.SetActive(true);
-            rank.color = Color.black;
-            username.color = Color.black;
-            score.color = Color.black;
+            rank.color = darkColor;
+            username.color = darkColor;
+            score.color = darkColor;
         }
         else
         {
             background.gameObject.SetActive(false);
-            rank.color = Color.white;
-            username.color = Color.white;
-            score.color = Color.white;
+            rank.color = lightColor;
+            username.color = lightColor;
+            score.color = lightColor;
         }
     }
 

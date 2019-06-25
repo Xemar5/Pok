@@ -9,6 +9,10 @@ public class CameraHazard : MonoBehaviour
 
     private void Update()
     {
+        if (player.CanMove == false)
+        {
+            return;
+        }
         float maxX = Camera.main.ViewportToWorldPoint(Vector3.right).x;
 
         if (player.transform.position.x > maxX ||

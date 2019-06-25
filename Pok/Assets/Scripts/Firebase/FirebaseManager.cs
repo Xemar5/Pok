@@ -1,10 +1,8 @@
-﻿using Firebase;
-using Firebase.Functions;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public class FirebaseManager : MonoBehaviour
@@ -23,99 +21,78 @@ public class FirebaseManager : MonoBehaviour
         }
     }
 
+    private class ReverseComparer : IComparer<int>
+    {
+        public int Compare(int x, int y)
+        {
+            return y.CompareTo(x);
+        }
+    }
 
-    private FirebaseApp app;
-    private FirebaseFunctions functions;
+    private List<ScoreEntryData> scores = new List<ScoreEntryData>();
+
+
+    public string UserGuid { get; set; }
 
     public event Action OnInitialized;
 
-    public bool IsInitialized => app != null;
-    public string UserGuid { get; set; }
-
-
-    public async void Initialize()
+    public void Initialize()
     {
-        if (app != null)
-        {
-            Debug.Log("Firebase already initialized");
-            return;
-        }
-        try
-        {
-            DependencyStatus status = await FirebaseApp.CheckAndFixDependenciesAsync();
-            if (status == DependencyStatus.Available)
-            {
-                app = FirebaseApp.DefaultInstance;
-                functions = FirebaseFunctions.GetInstance(app);
-                OnInitialized?.Invoke();
-            }
-            else
-            {
-                throw new FirebaseException(0, "Couldn't check and fix dependencies with resulting status: " + status);
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Couldn't initialize firebase: " + e);
-            Debug.Log("Retrying in 3 sec...");
-            await Task.Delay(3000);
-            Initialize();
-        }
+        string scoresJson = PlayerPrefs.GetString("Scores", "{}");
+        scores = JsonConvert.DeserializeObject<List<ScoreEntryData>>(scoresJson);
     }
 
 
-    public async Task<GuidData> GetId()
+    public GuidData GetId()
     {
-        try
-        {
-            HttpsCallableResult response = await functions.GetHttpsCallable("getUniqueGuid").CallAsync();
-            GuidData data = new GuidData();
-            data.guid = (string)response.Data;
-            return data;
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Couldn't get the user GUID: " + e);
-            return null;
-        }
+        GuidData data = new GuidData();
+        int id = PlayerPrefs.GetInt("PlayerGuid", 0);
+        data.guid = id.ToString();
+        return data;
     }
 
-    public async Task<ScoreResponse> SendScoreAndGetRanking(ScoreQuery localEntryData)
+    public ScoreResponse SendScoreAndGetRanking(ScoreQuery localEntryData)
     {
-        string json = JsonUtility.ToJson(localEntryData);
-        if (await SendScore(json) == false)
-        {
-            return null;
-        }
-        return await GetRanking(json);
+        SendScore(localEntryData);
+        return GetRanking(localEntryData);
     }
 
-    private async Task<bool> SendScore(string json)
+    private bool SendScore(ScoreQuery localEntryData)
     {
-        try
+        ScoreEntryData newEntry = new ScoreEntryData();
+        newEntry.guid = localEntryData.guid;
+        newEntry.score = localEntryData.score;
+        newEntry.invscore = -localEntryData.score;
+        newEntry.username = localEntryData.username;
+        scores.Add(newEntry);
+        scores = scores.OrderBy(x => x.score, new ReverseComparer()).Take(5).ToList();
+        int rank = 1;
+        for (int i = 0; i < scores.Count; i++)
         {
-            await functions.GetHttpsCallable("setScore").CallAsync(json);
-            return true;
+            scores[i].rank = rank++;
         }
-        catch (Exception e)
-        {
-            Debug.LogError("Couldn't send user score: " + e);
-            return false;
-        }
+        string scoresJson = JsonConvert.SerializeObject(scores);
+        PlayerPrefs.SetString("Scores", scoresJson);
+        return true;
     }
 
-    public async Task<ScoreResponse> GetRanking(string json)
+    public ScoreResponse GetRanking(ScoreQuery localEntryData)
     {
-        try
+        ScoreResponse response = new ScoreResponse();
+        response.entries = scores.Take(5).ToList();
+        int index = response.entries.FindIndex(x => x.guid == localEntryData.guid);
+        if (index == -1)
         {
-            HttpsCallableResult response = await functions.GetHttpsCallable("getRanking").CallAsync(json);
-            ScoreResponse data = JsonUtility.FromJson<ScoreResponse>((string)response.Data);
-            return data;
+            ScoreEntryData newEntry = scores.First(x => x.guid == localEntryData.guid);
+            response.entries.Add(newEntry);
+            response.senderIndex = 5;
         }
-        catch (Exception e)
+        else
         {
-            Debug.LogError("Couldn't receive leaderboards: " + e);
-            return null;
+            response.senderIndex = index;
         }
+        return response;
+
     }
+
 }
