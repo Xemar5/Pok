@@ -43,37 +43,51 @@ public class RankingManager : MonoBehaviour
         timeoutText.DOFade(0, 0);
         canvasGroup.DOFade(0, 0);
 
-        FirebaseManager.Instance.OnInitialized += OnFirebaseInitialized;
-        FirebaseManager.Instance.Initialize();
+        StartCoroutine(FirebaseManager.Instance.Initialize());
     }
 
-    private void OnFirebaseInitialized()
-    {
-        string userGuid = PlayerPrefs.GetString("PlayerGuid", string.Empty);
-        if (string.IsNullOrEmpty(userGuid) == true)
-        {
-            GuidData data = null;
-            data = FirebaseManager.Instance.GetId();
-        }
-        FirebaseManager.Instance.UserGuid = userGuid;
-    }
+    //private IEnumerator Firebase()
+    //{
+    //    string userGuid = PlayerPrefs.GetString("PlayerGuid", string.Empty);
+    //    while (string.IsNullOrEmpty(userGuid) == true)
+    //    {
+    //        yield return StartCoroutine(FirebaseManager.Instance.GetId(response =>
+    //        {
+    //            PlayerPrefs.SetString("PlayerGuid", response.guid);
+    //            userGuid = response.guid;
+    //        }, () =>
+    //        {
+    //            Debug.LogWarning("Couldn't get user GUID. Retrying in 3 seconds.");
+    //        }));
+
+    //        if (string.IsNullOrEmpty(userGuid) == true)
+    //        {
+    //            yield return new WaitForSeconds(3);
+    //        }
+    //    }
+    //    FirebaseManager.Instance.UserGuid = userGuid;
+    //}
 
 
     public void SendScoreAndGetRanking(ScoreQuery localEntryData)
     {
-        this.response = FirebaseManager.Instance.SendScoreAndGetRanking(localEntryData);
-        if (this.response == null)
+        StartCoroutine(FirebaseManager.Instance.SendScoreAndGetRanking(localEntryData, response =>
+        {
+            this.response = response;
+        }, () =>
         {
             Debug.LogWarning("Couldn't send the score or get leaderboards");
-        }
+        }));
     }
-    public async void GetRanking(ScoreQuery localEntryData)
+    public void GetRanking(ScoreQuery localEntryData)
     {
-        this.response = FirebaseManager.Instance.GetRanking(localEntryData);
-        if (this.response == null)
+        StartCoroutine(FirebaseManager.Instance.GetRanking(localEntryData, (response) =>
+        {
+            this.response = response;
+        }, () =>
         {
             Debug.LogWarning("Couldn't get leaderboards");
-        }
+        }));
     }
 
 
